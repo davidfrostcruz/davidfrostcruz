@@ -67,7 +67,7 @@ autocorr.plot(out[,1:2])
 # Gelman and Rubin Convergence Diagnostic
 
 gelman.diag(out, confidence = 0.95, transform=FALSE, autoburnin=TRUE,multivariate=TRUE)
-gelman.plot(out)
+gelman.plot(out[,1:2])
 
 
 ######### QUESTION 3 ##########
