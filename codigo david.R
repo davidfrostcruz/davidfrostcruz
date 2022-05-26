@@ -36,7 +36,7 @@ write.model(farm.model, "model.txt")
 file.show("model.txt")
 
 # Parameters 
-parameters = c("beta0", "beta1")
+parameters = c("p", "beta0", "beta1")
 
 # Set up and run model 
 
@@ -55,20 +55,20 @@ summary(out)
 HPDinterval(as.mcmc(as.matrix(out)))
 
 # History plot & posterior distributions
-par(mfrow=c(2,1))
+par(mfrow=c(1,2))
 traceplot(out[,1:2])
 densplot(out[,1:2])
 
 # Correlation & autocorrelation plot
 par(mfrow=c(1,2))
 crosscorr.plot(out)
-autocorr.plot(out)
+autocorr.plot(out[,1:2])
 
 # Gelman and Rubin Convergence Diagnostic
 
 gelman.diag(out, confidence = 0.95, transform=FALSE, autoburnin=TRUE,multivariate=TRUE)
 gelman.plot(out)
-?gelman.diag
+
 
 ######### QUESTION 3 ##########
 
@@ -87,5 +87,8 @@ mc.error <- c(mc.prep$statistics.Time.series.SE/mc.prep$statistics.SD)
 mc.error
 
 ######### QUESTION 4 ##########
+
+
+# Average for g1 and g2 
 
 
