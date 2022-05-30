@@ -5,7 +5,9 @@ library(ggplot2)
 library(coda)
 library(R2OpenBUGS)
 library(stats)
+library(LaplacesDemon)
 library(dplyr)
+library(mcmcse)
 ##### Setting data ######
 animal <- as.data.frame(read.table(file.choose(), header = TRUE))
 View(animal)
@@ -29,8 +31,8 @@ farm.model <- function() {
     logit(p[i])<-beta0+beta1*type[i]
   }
   # Prior information
-  beta0 ~ dnorm(0, 0.001)  
-  beta1 ~ dnorm(0, 0.001)}
+  beta0 ~ dnorm(0, 0.000001)  
+  beta1 ~ dnorm(0, 0.000001)}
 
 write.model(farm.model, "model.txt")
 file.show("model.txt")
@@ -63,32 +65,55 @@ densplot(out[,1:2])
 par(mfrow=c(1,2))
 crosscorr.plot(out)
 autocorr.plot(out[,1:2])
+acfplot(out[,1:2], lag.max=50)
 
 # Gelman and Rubin Convergence Diagnostic
 
-gelman.diag(out, confidence = 0.95, transform=FALSE, autoburnin=TRUE,multivariate=TRUE)
+g_diag <- gelman.diag(out, confidence = 0.95, transform=FALSE, autoburnin=TRUE,multivariate=TRUE)
+g_diag
 gelman.plot(out[,1:2])
 
 
 ######### QUESTION 3 ##########
 
-# Summary Statistics
+# Summary Statistics (Mean, SD, MCSE)
 
-summary(out)
-HPDinterval(as.mcmc(as.matrix(out)))
+summary.out <- summary(out[,c(1,2,4,17)])
+summary.out
+
+# HPDInterval 
+HPDinterval(as.mcmc(as.matrix(out[,c(1,2,4,17)])))
 
 # Kernel Density Plots 
 par(mfrow=c(1,2))
 densplot(out[,1:2])
-
-# MC Error
-mc.prep <- as.data.frame(summary(out)[1])
-mc.error <- c(mc.prep$statistics.Time.series.SE/mc.prep$statistics.SD)
-mc.error
+densplot(out[,c(4,17)])
 
 ######### QUESTION 4 ##########
+# Prevalence
+summary.out$stat["p[1]",]
+summary.out$stat["p[7]",] 
+HPDinterval(as.mcmc(as.matrix(out)))
 
+######### QUESTION 5 ###########
+densplot(out)
+densplot(out[,1:10])
 
-# Average for g1 and g2 
-
+### the density for first chain
+a<-out[[1]]
+p1a<-a[,4]
+p7a<-a[,10]
+### the density for second chain
+b<-out[[2]]
+p1b<-b[,4]
+p7b<-b[,10]
+### we can use ggplot to draw these 2 P in the same plot now
+###  or even we can directly draw the density plot of p1-p7
+deltapa<-p1a-p7a
+library(lattice)
+densityplot(deltapa)
+p1 <- data.frame(type = factor(rep(c(1,2), each=2500)), 
+                 prob = c(p1a,p7a))
+pl1<-ggplot(p1,aes(x=prob,color=type))+geom_density(outline.type="upper",trim=TRUE)
+pl1
 
